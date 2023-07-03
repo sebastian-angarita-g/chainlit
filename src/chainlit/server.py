@@ -133,7 +133,8 @@ def get_html_template():
         content = f.read()
         content = content.replace(PLACEHOLDER, tags)
         return content
-    
+
+
 def get_html_template_mod(path: str):
     PLACEHOLDER = "<!-- TAG INJECTION PLACEHOLDER -->"
 
@@ -217,11 +218,11 @@ async def project_settings():
 @app.get("/model_exists")
 async def mode_exists(model: str):
     """Return project settings. This is called by the UI before the establishing the websocket connection."""
-    #Logic to determine if the model is already loaded in the server / database
+    # Logic to determine if the model is already loaded in the server / database
     exists_bool = False
-    path_saved_models = 'SavedModels/'
+    path_saved_models = "SavedModels/"
     path_model = path_saved_models + model
-    print("path to saved models: "+path_saved_models)
+    print("path to saved models: " + path_saved_models)
 
     if os.path.exists(path_model):
         print("File exists!")
@@ -229,20 +230,17 @@ async def mode_exists(model: str):
     else:
         print("File does not exist.")
 
-    return JSONResponse(
-            content={
-            "model": model,
-            "exists": exists_bool
-        }
-    )
+    return JSONResponse(content={"model": model, "exists": exists_bool})
 
-#@app.post("/new_model/")
-#async def new_model(request: Request):
+
+# @app.post("/new_model/")
+# async def new_model(request: Request):
 #    data = await request.json()
+
 
 @app.post("/upload_json/")
 async def upload_json(file: UploadFile):
-    path_saved_models = 'SavedModels/'
+    path_saved_models = "SavedModels/"
     # Check if the uploaded file is a JSON file
     if file.content_type != "application/json":
         raise HTTPException(status_code=400, detail="Uploaded file is not a JSON file.")
@@ -272,8 +270,10 @@ async def serve(path: str):
         return FileResponse(path_to_file)
     else:
         headers = {"path": path}
-        return HTMLResponse(content=get_html_template_mod(path), status_code=200, headers=headers)
-        #return HTMLResponse(content=html_template, status_code=200, headers=headers)
+        return HTMLResponse(
+            content=get_html_template_mod(path), status_code=200, headers=headers
+        )
+        # return HTMLResponse(content=html_template, status_code=200, headers=headers)
 
 
 """
@@ -371,8 +371,8 @@ async def connect(sid, environ):
     return True
 
 
-#@socket.on("connection_successful")
-#async def connection_successful(sid):
+# @socket.on("connection_successful")
+# async def connection_successful(sid):
 #    session = need_session(sid)
 #    __chainlit_emitter__ = ChainlitEmitter(session)
 #    if config.lc_factory:
@@ -384,20 +384,22 @@ async def connect(sid, environ):
 #        """Call the on_chat_start function provided by the developer."""
 #        await config.on_chat_start(__chainlit_emitter__=__chainlit_emitter__)
 
+
 @socket.on("connection_successful")
 async def connection_successful(sid, param):
     session = need_session(sid)
     __chainlit_emitter__ = ChainlitEmitter(session)
-    #print('from chainlit: '+ param)
+    # print('from chainlit: '+ param)
     session["params"]["param1"] = param
     if config.lc_factory:
         """Instantiate the langchain agent and store it in the session."""
         agent = await config.lc_factory(__chainlit_emitter__=__chainlit_emitter__)
-        session["agent"] = agent        
+        session["agent"] = agent
 
     if config.on_chat_start:
         """Call the on_chat_start function provided by the developer."""
         await config.on_chat_start(__chainlit_emitter__=__chainlit_emitter__)
+
 
 @socket.on("disconnect")
 async def disconnect(sid):

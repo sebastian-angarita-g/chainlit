@@ -26,7 +26,7 @@ class UserSession:
         user_session["env"] = emitter.session["user_env"]
         user_session["params"] = emitter.session["params"]
         if "agent" in emitter.session:
-            user_session["agent"] = emitter.session["agent"]        
+            user_session["agent"] = emitter.session["agent"]
 
         return user_session.get(key)
 
