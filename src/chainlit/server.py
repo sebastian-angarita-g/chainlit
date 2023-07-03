@@ -10,7 +10,7 @@ import webbrowser
 from contextlib import asynccontextmanager
 from watchfiles import awatch
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import (
     HTMLResponse,
     JSONResponse,
@@ -133,6 +133,28 @@ def get_html_template():
         content = f.read()
         content = content.replace(PLACEHOLDER, tags)
         return content
+    
+def get_html_template_mod(path: str):
+    PLACEHOLDER = "<!-- TAG INJECTION PLACEHOLDER -->"
+
+    default_url = "https://github.com/Chainlit/chainlit"
+    url = config.github or default_url
+
+    tags = f"""<title>{config.chatbot_name}</title>
+    <meta name="description" content="{config.description}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{config.chatbot_name}">
+    <meta property="og:description" content="{config.description}">
+    <meta property="og:image" content="https://chainlit-cloud.s3.eu-west-3.amazonaws.com/logo/chainlit_banner.png">
+    <meta property="og:url" content="{url}">
+    <meta property="og:modelPath" content="{path}">"""
+
+    index_html_file_path = os.path.join(build_dir, "index.html")
+
+    with open(index_html_file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+        content = content.replace(PLACEHOLDER, tags)
+        return content
 
 
 html_template = get_html_template()
@@ -192,6 +214,56 @@ async def project_settings():
     )
 
 
+@app.get("/model_exists")
+async def mode_exists(model: str):
+    """Return project settings. This is called by the UI before the establishing the websocket connection."""
+    #Logic to determine if the model is already loaded in the server / database
+    exists_bool = False
+    path_saved_models = 'SavedModels/'
+    path_model = path_saved_models + model
+    print("path to saved models: "+path_saved_models)
+
+    if os.path.exists(path_model):
+        print("File exists!")
+        exists_bool = True
+    else:
+        print("File does not exist.")
+
+    return JSONResponse(
+            content={
+            "model": model,
+            "exists": exists_bool
+        }
+    )
+
+#@app.post("/new_model/")
+#async def new_model(request: Request):
+#    data = await request.json()
+
+@app.post("/upload_json/")
+async def upload_json(file: UploadFile):
+    path_saved_models = 'SavedModels/'
+    # Check if the uploaded file is a JSON file
+    if file.content_type != "application/json":
+        raise HTTPException(status_code=400, detail="Uploaded file is not a JSON file.")
+
+    # Read the contents of the uploaded file
+    contents = await file.read()
+
+    try:
+        # Attempt to parse the JSON contents
+        json_data = json.loads(contents)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Uploaded file is not valid JSON.")
+
+    # Save the JSON file to disk
+    file_path = os.path.join(path_saved_models, file.filename)
+    with open(file_path, "w") as f:
+        f.write(json.dumps(json_data))
+
+    return {"message": "JSON file saved successfully."}
+
+
 @app.get("/{path:path}")
 async def serve(path: str):
     """Serve the UI."""
@@ -199,7 +271,9 @@ async def serve(path: str):
     if path != "" and os.path.exists(path_to_file):
         return FileResponse(path_to_file)
     else:
-        return HTMLResponse(content=html_template, status_code=200)
+        headers = {"path": path}
+        return HTMLResponse(content=get_html_template_mod(path), status_code=200, headers=headers)
+        #return HTMLResponse(content=html_template, status_code=200, headers=headers)
 
 
 """
@@ -288,6 +362,7 @@ async def connect(sid, environ):
         "user_env": user_env,
         "running_sync": False,
         "should_stop": False,
+        "params": dict(),
     }  # type: Session
 
     sessions[sid] = session
@@ -296,19 +371,33 @@ async def connect(sid, environ):
     return True
 
 
+#@socket.on("connection_successful")
+#async def connection_successful(sid):
+#    session = need_session(sid)
+#    __chainlit_emitter__ = ChainlitEmitter(session)
+#    if config.lc_factory:
+#        """Instantiate the langchain agent and store it in the session."""
+#        agent = await config.lc_factory(__chainlit_emitter__=__chainlit_emitter__)
+#        session["agent"] = agent
+
+#    if config.on_chat_start:
+#        """Call the on_chat_start function provided by the developer."""
+#        await config.on_chat_start(__chainlit_emitter__=__chainlit_emitter__)
+
 @socket.on("connection_successful")
-async def connection_successful(sid):
+async def connection_successful(sid, param):
     session = need_session(sid)
     __chainlit_emitter__ = ChainlitEmitter(session)
+    #print('from chainlit: '+ param)
+    session["params"]["param1"] = param
     if config.lc_factory:
         """Instantiate the langchain agent and store it in the session."""
         agent = await config.lc_factory(__chainlit_emitter__=__chainlit_emitter__)
-        session["agent"] = agent
+        session["agent"] = agent        
 
     if config.on_chat_start:
         """Call the on_chat_start function provided by the developer."""
         await config.on_chat_start(__chainlit_emitter__=__chainlit_emitter__)
-
 
 @socket.on("disconnect")
 async def disconnect(sid):

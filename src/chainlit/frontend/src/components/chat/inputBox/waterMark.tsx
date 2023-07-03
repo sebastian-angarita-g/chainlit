@@ -5,7 +5,8 @@ export default function WaterMark() {
   return (
     <Stack mx="auto">
       <a
-        href="https://github.com/Chainlit/chainlit"
+        // href="https://github.com/Chainlit/chainlit"
+        href="https://www.sebastianangarita.com"
         target="_blank"
         style={{
           display: 'flex',
@@ -14,7 +15,7 @@ export default function WaterMark() {
         }}
       >
         <Typography fontSize="12px" color="text.secondary">
-          Built with
+          Adapted by Sebastián Angarita | Powered by
         </Typography>
         <Logo
           width={65}

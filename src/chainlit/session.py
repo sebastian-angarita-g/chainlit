@@ -22,6 +22,8 @@ class Session(TypedDict):
     should_stop: bool
     # Optional client to persist messages and files
     client: Optional[BaseClient]
+    # Additional parameters sent to the session
+    params: Dict[str, str]
 
 
 sessions: Dict[str, Session] = {}

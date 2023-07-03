@@ -38,6 +38,12 @@ export default memo(function Socket() {
 
   const isLoading = pSettings?.projectId && _isLoading;
   const authenticating = isLoading || (isAuthenticated && !accessToken);
+  // Parse the query parameters from the current URL
+  const queryParams = new URLSearchParams(window.location.search);
+  // Get the value of the 'model_path' parameter, or assign an empty string if it doesn't exist
+  const modelPath = queryParams.has('model_path')
+    ? queryParams.get('model_path')
+    : 'no_model';
 
   useEffect(() => {
     if (authenticating || !pSettings) return;
@@ -59,9 +65,16 @@ export default memo(function Socket() {
       socket
     });
 
+    //socket.on('connect', () => {
+    //  console.log('connected', socket.id);
+    //  socket.emit('connection_successful');
+    //  setSession((s) => ({ ...s!, error: false }));
+    //});
+
     socket.on('connect', () => {
       console.log('connected', socket.id);
-      socket.emit('connection_successful');
+      console.log('model_path', modelPath);
+      socket.emit('connection_successful', modelPath);
       setSession((s) => ({ ...s!, error: false }));
     });
 

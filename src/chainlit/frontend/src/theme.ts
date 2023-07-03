@@ -54,9 +54,9 @@ const darkTheme = createTheme({
       paper: '#212121'
     },
     primary: {
-      main: '#F80061',
-      dark: '#980039',
-      light: '#FFE7EB',
+      main: '#5abedb', //F80061
+      dark: '#1e4265', //980039
+      light: '#5abedb', //FFE7EB
       contrastText: '#fff'
     },
     secondary: {
@@ -84,12 +84,12 @@ const lightTheme = createTheme({
     background: {
       default: '#FAFAFA',
       paperVariant: '#EEEEEE',
-      paper: '#FFF'
+      paper: '#f5f9ff' //FFF
     },
     primary: {
-      main: '#F80061',
-      dark: '#980039',
-      light: '#FFE7EB',
+      main: '#1455f7', //F80061
+      dark: '#1e4265', //980039
+      light: '#5abedb', //FFE7EB
       contrastText: '#fff'
     },
     secondary: {
@@ -98,7 +98,7 @@ const lightTheme = createTheme({
       light: '#B87FE7',
       contrastText: '#fff'
     },
-    divider: '#EEEEEE',
+    divider: '#EEEEEE', //EEEEEE
     text: {
       primary: '#212121',
       secondary: '#616161'
